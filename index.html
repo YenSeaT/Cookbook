@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional Gut Kitchen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2e7d32; /* Forest Green */
+            --secondary: #81c784; /* Light Green */
+            --accent: #ff6f00; /* Amber for highlights */
+            --bg: #f0f4f3;
+            --card-bg: #ffffff;
+            --text: #333;
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- Header & Controls --- */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        h1 { margin: 0; color: var(--primary); }
+        .subtitle { color: #666; font-style: italic; margin-top: 5px; }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 300px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: #1b5e20; }
+        
+        .btn-secondary { background-color: white; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-secondary:hover { background-color: #e8f5e9; }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* --- Recipe Grid --- */
+        #recipeGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            transition: transform 0.2s;
+            border-left: 6px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+
+        .card h3 { margin-top: 0; color: #222; font-size: 1.2em; margin-bottom: 5px; }
+        .category-tag { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 10px; display: block;}
+        
+        .meta { 
+            font-size: 0.85em; 
+            color: #555; 
+            margin: 10px 0; 
+            display: flex; 
+            gap: 15px; 
+            background: #f9f9f9;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .notes-section {
+            background: #e8f5e9; 
+            padding: 10px; 
+            border-radius: 6px; 
+            font-size: 0.9em; 
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .user-notes {
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+        
+        .user-notes textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .actions { margin-top: 15px; text-align: right; }
+        .actions a { 
+            text-decoration: none; 
+            color: white; 
+            background-color: var(--accent);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .actions a.placeholder-link {
+            background-color: #90a4ae; /* Grey for placeholders */
+        }
+
+        /* --- Modal --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 100; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(2px);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close { float: right; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa; }
+        .close:hover { color: #000; }
+        
+        .meal-row {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .meal-time {
+            width: 120px;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .meal-detail h4 { margin: 0; font-size: 1.1em; }
+        .meal-detail span { font-size: 0.85em; color: #666; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-leaf"></i> Functional Gut Kitchen</h1>
+        <div class="subtitle">Immunity • Probiotics • Metabolism</div>
+        
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search (e.g., 'Ragi', 'Maggi', 'Gut')...">
+            <button id="randomDayBtn" class="btn-primary"><i class="fas fa-magic"></i> Generate Daily Plan</button>
+        </div>
+        
+        <div class="filters" id="categoryFilters">
+            </div>
+    </header>
+
+    <main id="recipeGrid">
+        </main>
+
+    <div id="planModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 style="color:var(--primary); margin-top:0;">Your Functional Meal Plan</h2>
+            <p style="font-size:0.9em; color:#666;">A balanced selection covering probiotics, fiber, and protein.</p>
+            <div id="dailyPlanContainer"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="regenerateBtn" class="btn-secondary"><i class="fas fa-sync-alt"></i> Roll Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. THE DATABASE ---
+        // Populated with ALL items from your list.
+        // Source defaults to YouTube Search if not specific.
+        
+        const recipes = [
+            // I. Functional Beverages
+            { name: "Nutritious Kanji (Beetroot/Amla)", category: "Beverages", prep: "15m", cook: "3-5 days", notes: "Fermented probiotic drink. Use mustard seeds." },
+            { name: "Kombucha", category: "Beverages", prep: "20m", cook: "7-10 days", notes: "Requires SCOBY. Double fermentation for fizz." },
+            { name: "Probiotic Ginger Bug Soda", category: "Beverages", prep: "10m", cook: "3 days", notes: "Feed the bug daily with ginger and sugar." },
+            { name: "Probiotic Hibiscus Ginger Soda", category: "Beverages", prep: "10m", cook: "2 days", notes: "Rich in Vitamin C. Use dried hibiscus petals." },
+            { name: "Gond Katira Chia Lemon Drink", category: "Beverages", prep: "8hr (Soak)", cook: "5m", notes: "Great for body cooling and gut lining." },
+            { name: "Golden Mix Morning Shot (Var A)", category: "Beverages", prep: "5m", cook: "0m", notes: "Ginger, Turmeric, Amla, Carrot, Jeera." },
+            { name: "Golden Mix Morning Shot (Var B)", category: "Beverages", prep: "5m", cook: "0m", notes: "Beetroot base. High Nitric Oxide." },
+            { name: "Spiced Water (Detox)", category: "Beverages", prep: "2m", cook: "10m", notes: "Boil Fenugreek, Fennel, Jeera, Cinnamon, Ajwain." },
+            { name: "Night Recovery Shot", category: "Beverages", prep: "5m", cook: "2m", notes: "Turmeric, Nutmeg, Saffron. Promotes sleep." },
+            { name: "Superfood Protein Shake", category: "Beverages", prep: "1hr (Soak)", cook: "5m", notes: "Pumpkin seeds, Makhana, Chia, Moringa." },
+            { name: "Anti-Allergy Elixir", category: "Beverages", prep: "10m", cook: "0m", notes: "Celery, Lemon, Ginger. Mucus control." },
+            { name: "Matcha Tea", category: "Beverages", prep: "5m", cook: "2m", notes: "High antioxidant. Use ceremonial grade if possible." },
+            { name: "Green Juice", category: "Beverages", prep: "10m", cook: "0m", notes: "Spinach, Cucumber, Bottle gourd base." },
+
+            // II. Healthy Snacks
+            { name: "Maggi Thupka", category: "Snacks", prep: "10m", cook: "15m", notes: "Soup-based noodles with lots of veggies." },
+            { name: "Slurrp Smart Zucchini Maggi", category: "Snacks", prep: "10m", cook: "5m", notes: "Use spiralized zucchini instead of noodles." },
+            { name: "Low-carb Pesto Zoodles", category: "Snacks", prep: "10m", cook: "5m", notes: "Basil, pine nuts/walnuts, garlic sauce." },
+            { name: "Soya Chilli Maggi", category: "Snacks", prep: "10m", cook: "10m", notes: "High protein soya chunks added." },
+            { name: "Sabudana/Rice Paper Momos", category: "Snacks", prep: "20m", cook: "15m", notes: "Gluten-free outer layer." },
+            { name: "Spicy Glow Rolls", category: "Snacks", prep: "20m", cook: "0m", notes: "Rice paper rolls with raw veggies." },
+            { name: "Potato Hash Browns", category: "Snacks", prep: "10m", cook: "15m", notes: "Shallow fry or air fry." },
+            { name: "Veggie/Quinoa Balls", category: "Snacks", prep: "15m", cook: "20m", notes: "Served with pepper dressing." },
+            { name: "Chickpea Patties", category: "Snacks", prep: "8hr (Soak)", cook: "20m", notes: "Falafel style or Tawa fry." },
+            { name: "Boiled Rajma Patties", category: "Snacks", prep: "8hr (Soak)", cook: "20m", notes: "Mash well, high fiber." },
+            { name: "Root Veggie Patties", category: "Snacks", prep: "15m", cook: "20m", notes: "Beetroot, Sweet Potato, Black Channa." },
+            { name: "Sprouted Moong Tikki Chat", category: "Snacks", prep: "10m", cook: "10m", notes: "Sprouts base, shallow fried." },
+            { name: "Healthy Papdi Chat (Khakra)", category: "Snacks", prep: "5m", cook: "0m", notes: "Use crushed Khakra as base." },
+            { name: "Vegan Stuffed Sweet Potato", category: "Snacks", prep: "5m", cook: "40m", notes: "Baked, stuffed with chickpeas." },
+            { name: "Hormone-friendly Crackers", category: "Snacks", prep: "10m", cook: "15m", notes: "Seed based (Flax, Sesame)." },
+            { name: "High Protein Rice Crispers", category: "Snacks", prep: "10m", cook: "15m", notes: "Puffed rice with protein powder/nuts." },
+            { name: "Water Chestnut Manchurian", category: "Snacks", prep: "15m", cook: "20m", notes: "Use Singhara flour." },
+
+            // III. Salads
+            { name: "Standard Chickpea Salad", category: "Salads", prep: "10m", cook: "0m", notes: "Cucumber, tomato, lemon dressing." },
+            { name: "Achari Chickpea Salad", category: "Salads", prep: "10m", cook: "5m", notes: "Use mango pickle masala as dressing." },
+            { name: "Creamy Cauliflower & Chickpea", category: "Salads", prep: "15m", cook: "15m", notes: "Roasted cauliflower, tahini dressing." },
+            { name: "Channa Power Bowl", category: "Salads", prep: "15m", cook: "0m", notes: "Mixed greens, seeds, paneer." },
+            { name: "Corn & Black Channa Salad", category: "Salads", prep: "10m", cook: "0m", notes: "Boiled corn and black chickpeas." },
+            { name: "Rajma Salad", category: "Salads", prep: "10m", cook: "0m", notes: "Kidney beans with onions and tomatoes." },
+            { name: "Winter Veggies Salad", category: "Salads", prep: "15m", cook: "20m", notes: "Roasted carrots, beets, sweet potato." },
+            { name: "Pumpkin & Moong Dal Salad", category: "Salads", prep: "10m", cook: "10m", notes: "Soaked moong dal (kosambari style)." },
+            { name: "Smashed Potato Salad", category: "Salads", prep: "10m", cook: "20m", notes: "Boiled, smashed, roasted potatoes." },
+            { name: "Carrot Noodles Salad", category: "Salads", prep: "10m", cook: "0m", notes: "Ribboned carrots with peanut dressing." },
+            { name: "Makhana Salad", category: "Salads", prep: "5m", cook: "5m", notes: "Roasted foxnuts with veggies." },
+
+            // IV. Soups
+            { name: "Green Dal Soup", category: "Soups", prep: "5m", cook: "20m", notes: "Moong dal with spinach." },
+            { name: "Horsegram Soup", category: "Soups", prep: "8hr (Soak)", cook: "30m", notes: "Excellent for weight loss/heat." },
+            { name: "Moringa Soup", category: "Soups", prep: "5m", cook: "15m", notes: "Drumstick leaves clear soup." },
+            { name: "Butternut Squash Soup", category: "Soups", prep: "10m", cook: "25m", notes: "Creamy, sweet, comforting." },
+            { name: "Mix Veg Ragi Soup", category: "Soups", prep: "10m", cook: "15m", notes: "Ragi flour slurry for thickening." },
+            { name: "Broccoli Soup", category: "Soups", prep: "5m", cook: "15m", notes: "Pureed broccoli with almond milk." },
+
+            // V. Breakfast
+            { name: "Moongdal Roti", category: "Breakfast", prep: "10m", cook: "15m", notes: "Dal flour or cooked dal mixed in dough." },
+            { name: "Ragi Paneer Paratha", category: "Breakfast", prep: "15m", cook: "15m", notes: "Stuffed with protein." },
+            { name: "Moringa Chapathi", category: "Breakfast", prep: "10m", cook: "15m", notes: "Wheat/Millet flour + Moringa puree." },
+            { name: "Ragi/Rice Roti (Akki Roti)", category: "Breakfast", prep: "15m", cook: "15m", notes: "Karnataka style, pat on tawa." },
+            { name: "Jeera Roti", category: "Breakfast", prep: "10m", cook: "15m", notes: "Digestive, simple." },
+            { name: "Moongdal Dosa (Pesarattu)", category: "Breakfast", prep: "8hr (Soak)", cook: "15m", notes: "Green gram dosa. Ginger/Jeera essential." },
+            { name: "Moringa Keerai Dosa", category: "Breakfast", prep: "5m", cook: "10m", notes: "Mix leaves into standard batter." },
+            { name: "High Protein Veg Omelette", category: "Breakfast", prep: "10m", cook: "10m", notes: "Besan (chickpea flour) base." },
+            { name: "Bisi Bele Bath (Millet)", category: "Breakfast", prep: "15m", cook: "30m", notes: "Use foxtail millet instead of rice." },
+            { name: "Poha / Millet Veg Upma", category: "Breakfast", prep: "5m", cook: "15m", notes: "Loaded with veggies." },
+            { name: "Ragi Mudde", category: "Breakfast", prep: "5m", cook: "15m", notes: "Finger millet balls. Swallow, don't chew." },
+            { name: "Billa Kudumulu", category: "Breakfast", prep: "15m", cook: "20m", notes: "Steamed rice rava dumplings." },
+            { name: "Daliya (Broken Wheat)", category: "Breakfast", prep: "5m", cook: "15m", notes: "Savory porridge." },
+
+            // VI. Main Course
+            { name: "Soya & Chickpea Pulav", category: "Main", prep: "20m", cook: "30m", notes: "High protein rice dish." },
+            { name: "Chickpea One-Pot Rice", category: "Main", prep: "10m", cook: "25m", notes: "Pressure cooker meal." },
+            { name: "Chickpea & Paneer Rice", category: "Main", prep: "10m", cook: "25m", notes: "Rich and filling." },
+            { name: "Lemon Rice (Millet)", category: "Main", prep: "10m", cook: "15m", notes: "Turmeric and lemon for immunity." },
+            { name: "Quinoa Khichdi", category: "Main", prep: "10m", cook: "20m", notes: "Lighter than rice khichdi." },
+
+            // VII. Sides (Curries/Dals)
+            { name: "Lemon Dal Curry", category: "Sides", prep: "5m", cook: "20m", notes: "Tangy lentil soup." },
+            { name: "Palak/Gongura Pappu", category: "Sides", prep: "10m", cook: "25m", notes: "Spinach or Sorrel leaves dal." },
+            { name: "Sorakayi (Bottle Gourd) Pappu", category: "Sides", prep: "10m", cook: "20m", notes: "Cooling and hydrating." },
+            { name: "Vegetable Kuut (Kootu)", category: "Sides", prep: "15m", cook: "20m", notes: "Coconut and lentil base." },
+            { name: "Pacchi Pulusu", category: "Sides", prep: "10m", cook: "5m", notes: "Raw tamarind stew (Andhra style). No cooking." },
+            { name: "Munakkaya (Drumstick) Pulusu", category: "Sides", prep: "10m", cook: "20m", notes: "Tangy tamarind gravy." },
+            { name: "Tomato/Pepper Rasam", category: "Sides", prep: "5m", cook: "15m", notes: "Digestive soup." },
+            { name: "Alasandala (Black eyed pea) Curry", category: "Sides", prep: "8hr (Soak)", cook: "25m", notes: "Protein rich gravy." },
+            { name: "Black Channa Curry", category: "Sides", prep: "8hr (Soak)", cook: "30m", notes: "Hardy, fiber rich." },
+            { name: "Dhondakaya (Ivy Gourd) Palya", category: "Sides", prep: "10m", cook: "15m", notes: "Stir fry with coconut." },
+            { name: "Horsegram Curry", category: "Sides", prep: "8hr (Soak)", cook: "30m", notes: "Thick gravy." },
+            { name: "Karela Fry (Bitter Gourd)", category: "Sides", prep: "10m", cook: "20m", notes: "Good for blood sugar." },
+            { name: "Baigan Bharta", category: "Sides", prep: "10m", cook: "20m", notes: "Smoked eggplant mash." },
+            { name: "Gutti Vankaya", category: "Sides", prep: "15m", cook: "25m", notes: "Stuffed brinjal curry." },
+            { name: "Mangalore Dosakai Sambhar", category: "Sides", prep: "10m", cook: "25m", notes: "Yellow cucumber stew." },
+            { name: "Sorakayi Perugu Pachadi", category: "Sides", prep: "10m", cook: "10m", notes: "Yogurt chutney with bottle gourd." },
+            { name: "Pudina/Sesame Chutney", category: "Sides", prep: "5m", cook: "5m", notes: "Green sides for Idli/Dosa." },
+
+            // VIII. Desserts
+            { name: "Sweet Potato Brownie", category: "Dessert", prep: "15m", cook: "30m", notes: "Use cacao powder, no refined sugar." },
+            { name: "Salted Date Caramels", category: "Dessert", prep: "10m", cook: "0m", notes: "Dates blended with salt and vanilla." },
+            { name: "Paan Cheesecake", category: "Dessert", prep: "20m", cook: "4hr (Chill)", notes: "Dairy free. Cashew base with Gulkand." },
+            { name: "Tiramisu (Overnight Oats)", category: "Dessert", prep: "10m", cook: "8hr (Chill)", notes: "Coffee soaked oats." },
+            { name: "Mulberry/Blackberry Caramel", category: "Dessert", prep: "10m", cook: "5m", notes: "Fruit reduction sauce." },
+
+            // IX. Condiments
+            { name: "Fermented Kimchi", category: "Condiments", prep: "30m", cook: "5 days", notes: "Spicy probiotic cabbage." },
+            { name: "Pickled Onions", category: "Condiments", prep: "5m", cook: "24hr", notes: "Vinegar and beetroot for color." },
+            { name: "Moringa Complex Powder", category: "Condiments", prep: "10m", cook: "5m", notes: "Roast and grind: Moringa, Curry leaves, Flax." }
+        ];
+
+        // --- 2. APP LOGIC ---
+
+        const grid = document.getElementById('recipeGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterContainer = document.getElementById('categoryFilters');
+        const modal = document.getElementById('planModal');
+        const planContainer = document.getElementById('dailyPlanContainer');
+        let currentFilter = 'All';
+
+        // Initialize
+        function init() {
+            renderFilters();
+            renderRecipes(recipes);
+            loadUserNotes();
+        }
+
+        // Render Filters
+        function renderFilters() {
+            const categories = ["All", ...new Set(recipes.map(r => r.category))];
+            filterContainer.innerHTML = categories.map(cat => 
+                `<button class="filter-btn ${cat === 'All' ? 'active' : ''}" onclick="filterByCategory('${cat}')">${cat}</button>`
+            ).join('');
+        }
+
+        // Render Cards
+        function renderRecipes(data) {
+            grid.innerHTML = data.map((recipe, index) => {
+                // Generate a YouTube Search URL since we don't have exact links for all 80 items
+                const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(recipe.name + " recipe")}`;
+                
+                return `
+                <div class="card">
+                    <div>
+                        <span class="category-tag">${recipe.category}</span>
+                        <h3>${recipe.name}</h3>
+                        <div class="meta">
+                            <span><i class="far fa-clock"></i> Prep: ${recipe.prep}</span>
+                            <span><i class="fas fa-fire"></i> Cook: ${recipe.cook}</span>
+                        </div>
+                        <div class="notes-section">
+                            <strong><i class="fas fa-info-circle"></i></strong> ${recipe.notes}
+                        </div>
+                        <div class="user-notes">
+                            <textarea placeholder="Add your own notes here..." oninput="saveNote('${recipe.name}', this.value)" id="note-${index}"></textarea>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <a href="${searchUrl}" target="_blank" class="placeholder-link">Find on YouTube <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            // Re-populate notes from local storage after rendering
+            setTimeout(loadUserNotes, 100);
+        }
+
+        // Filter Logic
+        window.filterByCategory = (category) => {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText === category) btn.classList.add('active');
+            });
+            
+            const filtered = category === 'All' 
+                ? recipes 
+                : recipes.filter(r => r.category === category);
+            
+            // Re-apply search if exists
+            const term = searchInput.value.toLowerCase();
+            const final = filtered.filter(r => r.name.toLowerCase().includes(term));
+            
+            renderRecipes(final);
+        };
+
+        // Search Logic
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filteredCat = currentFilter === 'All' ? recipes : recipes.filter(r => r.category === currentFilter);
+            
+            const final = filteredCat.filter(r => 
+                r.name.toLowerCase().includes(term) || 
+                r.notes.toLowerCase().includes(term)
+            );
+            renderRecipes(final);
+        });
+
+        // Local Storage for Notes
+        window.saveNote = (recipeName, note) => {
+            localStorage.setItem('gut_kitchen_' + recipeName, note);
+        };
+
+        function loadUserNotes() {
+            recipes.forEach((r, index) => {
+                const note = localStorage.getItem('gut_kitchen_' + r.name);
+                const el = document.getElementById(`note-${index}`);
+                if (note && el) el.value = note;
+            });
+        }
+
+        // Random Meal Plan Logic
+        document.getElementById('randomDayBtn').addEventListener('click', generatePlan);
+        document.getElementById('regenerateBtn').addEventListener('click', generatePlan);
+        document.querySelector('.close').addEventListener('click', () => modal.style.display = "none");
+        window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; };
+
+        function generatePlan() {
+            const getRand = (cat) => {
+                const items = recipes.filter(r => r.category === cat);
+                return items.length ? items[Math.floor(Math.random() * items.length)] : null;
+            };
+            
+            // Fallbacks: If "Main" is empty, use "Breakfast" (often interchangeable like Pongal/Upma)
+            const plan = [
+                { time: "Wake Up", item: getRand("Beverages") },
+                { time: "Breakfast", item: getRand("Breakfast") },
+                { time: "Lunch Main", item: getRand("Main") || getRand("Breakfast") },
+                { time: "Lunch Side", item: getRand("Sides") },
+                { time: "Snack", item: getRand("Snacks") },
+                { time: "Dinner", item: getRand("Soups") || getRand("Sides") } // Soups or light sides for dinner
+            ];
+
+            const html = plan.map(slot => {
+                if (!slot.item) return '';
+                return `
+                <div class="meal-row">
+                    <div class="meal-time">${slot.time}</div>
+                    <div class="meal-detail">
+                        <h4>${slot.item.name}</h4>
+                        <span>${slot.item.notes}</span>
+                    </div>
+                </div>`;
+            }).join('');
+
+            planContainer.innerHTML = html;
+            modal.style.display = "block";
+        }
+
+        init();
+    </script>
+</body>
+</html>
