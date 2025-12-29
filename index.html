@@ -3,316 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recipe Database Manager</title>
+    <title>Family Nutrition Planner</title>
     <style>
         :root {
-            --primary-color: #10b981;
-            --secondary-color: #064e3b;
-            --bg-color: #f3f4f6;
-            --text-color: #1f2937;
+            --primary: #2E7D32; /* Green for health */
+            --secondary: #E8F5E9;
+            --accent: #FF6F00;
+            --text: #333;
+            --card-bg: #ffffff;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #f4f7f6;
+            color: var(--text);
             margin: 0;
             padding: 20px;
+            line-height: 1.6;
         }
+
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 15px;
+            text-align: center;
+            margin-bottom: 30px;
         }
-        h1 {
-            margin: 0;
-            color: var(--secondary-color);
-            font-size: 24px;
-        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        p.subtitle { color: #666; font-size: 0.9rem; }
+
         .controls {
             display: flex;
             gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
         }
+
         button {
-            background-color: var(--primary-color);
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
             cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
         }
-        button:hover {
-            background-color: var(--secondary-color);
-        }
-        input#search {
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            width: 300px;
-        }
-        .table-container {
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        th {
-            background-color: #f9fafb;
-            font-weight: 700;
-            color: #4b5563;
-            cursor: pointer;
-            user-select: none;
-        }
-        th:hover {
-            background-color: #e5e7eb;
-        }
-        tr:hover {
-            background-color: #f0fdf4;
-        }
-        a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .category-tag {
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 2px 8px;
+
+        button:active { transform: scale(0.98); }
+        button.secondary { background-color: #546E7A; }
+
+        .meal-card {
+            background: var(--card-bg);
             border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary);
         }
+
+        .meal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .meal-type {
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .dish-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+
+        .ingredients {
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .family-notes {
+            margin-top: 15px;
+            background-color: var(--secondary);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .note-item {
+            display: flex;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .note-name {
+            font-weight: bold;
+            min-width: 90px;
+            color: #444;
+        }
+
+        .note-text { color: #555; }
+
+        .tag {
+            display: inline-block;
+            background: #eee;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 5px;
+        }
+
+        .tag.protein { background: #ffe0b2; color: #e65100; }
+        .tag.iron { background: #e1bee7; color: #4a148c; }
+        .tag.fiber { background: #c8e6c9; color: #1b5e20; }
+        
+        /* Specific Styles for Dinner (Light) */
+        .meal-card.dinner { border-left-color: var(--accent); }
+
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>🍳 Master Recipe Database (114 Items)</h1>
-        <div class="controls">
-            <input type="text" id="search" placeholder="Search recipes, categories, or ingredients..." onkeyup="filterTable()">
-            <button onclick="downloadCSV()">⬇ Download CSV for Excel/Sheets</button>
-        </div>
+        <h1>Family Nutrition Plan</h1>
+        <p class="subtitle">Single Kitchen • Morning Prep • Healthy Weight Loss</p>
     </header>
 
-    <div class="table-container">
-        <table id="recipeTable">
-            <thead>
-                <tr>
-                    <th onclick="sortTable(0)">ID</th>
-                    <th onclick="sortTable(1)">Item Name</th>
-                    <th onclick="sortTable(2)">Category</th>
-                    <th onclick="sortTable(3)">Prep/Cook Time</th>
-                    <th>Serving</th>
-                    <th>Best Time</th>
-                    <th>Video Link</th>
-                    <th>Notes / Instructions</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <!-- Rows will be populated by JS -->
-            </tbody>
-        </table>
-    </div>
+    <div class="controls">
+        <button onclick="generatePlan()">🎲 Generate New Day</button>
+        </div>
+
+    <div id="app">
+        </div>
 </div>
 
 <script>
-    const recipes = [
-        {id:1, name:"Momos (Sabudana/Rice paper)", category:"Snack", time:"20m Prep / 15m Cook", serv:"4-5 pcs", best:"Evening", link:"https://www.youtube.com/results?search_query=sabudana+momos+recipe", notes:"Base: Sabudana or Rice paper"},
-        {id:2, name:"Sweet potato brownie", category:"Dessert", time:"15m Prep / 30m Bake", serv:"1 sq", best:"Snack", link:"https://www.youtube.com/watch?v=Nh6IISlVvJU", notes:"Vegan. Use sweet potato puree + cocoa"},
-        {id:3, name:"Potato Hash browns", category:"Snack", time:"10m Prep / 15m Cook", serv:"2 patties", best:"Breakfast", link:"https://www.youtube.com/results?search_query=potato+hash+browns+indian+recipe", notes:"Grated potato, seasoning, pan fry"},
-        {id:4, name:"Moongdal (Roti/Dosa)", category:"Breakfast", time:"10m Prep / 10m Cook", serv:"2 pcs", best:"Breakfast", link:"https://www.youtube.com/results?search_query=moong+dal+roti+recipe", notes:"Soak moong dal, grind, make dosa or knead for roti"},
-        {id:5, name:"Vegan stuffed Sweet potatoes", category:"Main", time:"10m Prep / 30m Bake", serv:"1 potato", best:"Lunch", link:"https://www.youtube.com/results?search_query=vegan+stuffed+sweet+potato+chickpeas", notes:"Stuff with chickpeas & walnut herb sauce"},
-        {id:6, name:"Chickpea patties", category:"Snack", time:"15m Prep / 10m Cook", serv:"2 patties", best:"Evening", link:"https://www.youtube.com/results?search_query=chickpea+patties+indian+recipe", notes:"Mash boiled chickpeas, spices, pan sear"},
-        {id:7, name:"Chickpea Salads", category:"Salad", time:"10m Prep", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=J3wJhW6typQ", notes:"Boiled chickpeas, chopped veggies, lemon dressing"},
-        {id:8, name:"Soya and chickpea pulav", category:"Main", time:"10m Prep / 25m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=soya+chickpea+pulao+recipe", notes:"High protein one-pot rice meal"},
-        {id:9, name:"Sweet potato truffles", category:"Dessert", time:"20m Prep / 1hr Chill", serv:"2 balls", best:"Dessert", link:"https://www.youtube.com/results?search_query=sweet+potato+truffles+recipe", notes:"Sweet potato mash, dates/chocolate, rolled into balls"},
-        {id:10, name:"Fermented Kimchi", category:"Probiotic", time:"30m Prep / 2 Days Ferm", serv:"Small side", best:"Lunch", link:"https://www.youtube.com/watch?v=ys-STEwX5YE", notes:"Napa cabbage, radish, chili paste, ferment"},
-        {id:11, name:"Sprouted Moong tikki chat", category:"Snack", time:"15m Prep / 10m Cook", serv:"1 plate", best:"Evening", link:"https://www.youtube.com/shorts/HUJ7Ai_eFsg", notes:"Sprouted moong patties topped with chutney/yogurt"},
-        {id:12, name:"Nutritious Kanji (Beetroot/Amla)", category:"Probiotic", time:"10m Prep / 2 Days Ferm", serv:"1 glass", best:"Mid-Morning", link:"https://www.youtube.com/watch?v=Rgooh5yOKIg", notes:"Fermented drink with mustard seeds & water"},
-        {id:13, name:"Homemade pickled Onions", category:"Condiment", time:"10m Prep / 1 Day Soak", serv:"Side", best:"Lunch", link:"https://www.youtube.com/results?search_query=sirka+pyaz+recipe", notes:"Vinegar, salt, beetroot slice for color"},
-        {id:14, name:"Golden Mix Morning shots", category:"Immunity", time:"5m Prep", serv:"50ml Shot", best:"Early Morning", link:"", notes:"Variations: (1) Ginger/Turmeric/Amla/Carrot (2) Beetroot/Amla (3) Orange/Turmeric. Boil spices (Fenugreek, Jeera, Cinnamon) in water, strain, mix with juice."},
-        {id:15, name:"Winter salad with Winter Veggies", category:"Salad", time:"15m Prep", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=winter+vegetable+salad+indian", notes:"Seasonal greens, root veggies, dressing"},
-        {id:16, name:"Green dal soup", category:"Soup", time:"5m Prep / 20m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=green+moong+dal+soup+recipe", notes:"Whole moong dal boiled and seasoned"},
-        {id:17, name:"Ragi paneer paratha", category:"Breakfast", time:"15m Prep / 15m Cook", serv:"2 parathas", best:"Breakfast", link:"https://www.youtube.com/results?search_query=ragi+paneer+paratha+recipe", notes:"Stuffed paneer inside ragi dough"},
-        {id:18, name:"Pumpkin Moong dal Salad", category:"Salad", time:"10m Prep / 10m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=pumpkin+moong+dal+salad", notes:"Lightly cooked pumpkin and soaked moong dal"},
-        {id:19, name:"Horsegram Soup", category:"Soup", time:"10m Prep / 30m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=ulavacharu+soup+recipe", notes:"Boiled horsegram water seasoned (Ulavacharu style)"},
-        {id:20, name:"Moringa Soup", category:"Soup", time:"5m Prep / 15m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/watch?v=DhvccOwiKGE", notes:"Drumstick leaves boiled with garlic/pepper"},
-        {id:21, name:"Moringa, curry leaves, flaxseeds powder", category:"Condiment", time:"15m Prep (Batch)", serv:"1 tbsp", best:"With Rice", link:"https://www.youtube.com/results?search_query=moringa+flaxseed+podi+recipe", notes:"Roast and grind all ingredients. Use as 'Podi'."},
-        {id:22, name:"High protein Rice crispers", category:"Snack", time:"15m Prep / 20m Bake", serv:"1 handful", best:"Snack", link:"https://www.youtube.com/results?search_query=healthy+puffed+rice+bars+recipe", notes:"Puffed rice or crisped rice snacks with nuts/seeds"},
-        {id:23, name:"Moringa keerai dosa", category:"Breakfast", time:"10m Prep / 5m Cook", serv:"2 dosas", best:"Breakfast", link:"https://www.sharmispassions.com/murungai-keerai-adai-drumstick-leaves/", notes:"Add moringa leaves to dosa batter"},
-        {id:24, name:"Sesame seeds Chutney", category:"Condiment", time:"5m Prep", serv:"2 tbsp", best:"Side", link:"https://www.youtube.com/results?search_query=sesame+seeds+chutney+andhra+style", notes:"Roast sesame + chilies + tamarind + grind"},
-        {id:25, name:"Boiled Rajma patties", category:"Snack", time:"15m Prep / 10m Cook", serv:"2 patties", best:"Evening", link:"https://www.youtube.com/watch?v=-w6z7VBFeh0", notes:"Mash boiled rajma, spices, bind and fry"},
-        {id:26, name:"Chickpea One Pot Rice", category:"Main", time:"10m Prep / 25m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=rWInw0O3i4o", notes:"Pressure cook soaked chickpeas with rice and spices"},
-        {id:27, name:"Chickpea and Paneer Rice", category:"Main", time:"10m Prep / 25m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=chickpea+paneer+pulao", notes:"Protein-rich rice dish"},
-        {id:28, name:"Corn and black channa Salad", category:"Salad", time:"10m Prep", serv:"1 bowl", best:"Snack", link:"https://www.youtube.com/results?search_query=corn+kala+chana+salad", notes:"Boiled corn + black chickpeas + chaat masala"},
-        {id:29, name:"Channa power bowl", category:"Salad", time:"15m Prep", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=J3wJhW6typQ", notes:"Chickpeas, quinoa/millets, avocado/veggies"},
-        {id:30, name:"Spinach Moong patties", category:"Snack", time:"15m Prep / 10m Cook", serv:"2 patties", best:"Evening", link:"https://www.youtube.com/results?search_query=spinach+moong+dal+cutlet", notes:"Spinach puree + boiled moong dal + spices"},
-        {id:31, name:"Kombucha", category:"Probiotic", time:"20m Prep / 7 Days Ferm", serv:"1 glass", best:"Afternoon", link:"https://www.youtube.com/results?search_query=how+to+make+kombucha+at+home+india", notes:"Fermented tea (requires SCOBY)"},
-        {id:32, name:"Ginger Bug Sodas", category:"Probiotic", time:"15m Prep / 5 Days Ferm", serv:"1 glass", best:"Afternoon", link:"https://zerowastechef.com/2015/06/10/ginger-bug/", notes:"Base: Ginger, sugar, water. Flavor: Beetroot, Apple, Pom, Lemon, Orange, Kiwi"},
-        {id:33, name:"Salted date caramels", category:"Dessert", time:"10m Prep / 1hr Freeze", serv:"1-2 pcs", best:"Dessert", link:"https://www.youtube.com/results?search_query=salted+date+caramels+recipe", notes:"Blend Dates + Salt. Mix in Raspberries/Cranberries/Choco. Freeze."},
-        {id:34, name:"Probiotic hibiscus ginger soda", category:"Probiotic", time:"5m Prep", serv:"1 glass", best:"Afternoon", link:"https://www.youtube.com/results?search_query=hibiscus+ginger+bug+soda", notes:"Use Ginger bug base + Hibiscus tea"},
-        {id:35, name:"Rice paper dumplings", category:"Snack", time:"20m Prep / 10m Cook", serv:"4-5 pcs", best:"Dinner", link:"https://www.youtube.com/watch?v=n443pPgsGhY", notes:"Veggie filling wrapped in rice paper & pan-fried"},
-        {id:36, name:"Creamy Cauliflower & Chickpea Bowl", category:"Salad", time:"15m Prep / 15m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=roasted+cauliflower+chickpea+salad", notes:"Roast cauliflower and chickpeas with tahini/yogurt dressing"},
-        {id:37, name:"Smashed potato Salad", category:"Salad", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=smashed+potato+salad+healthy", notes:"Boil potatoes, smash, roast, toss with dressing"},
-        {id:38, name:"Veggie Balls", category:"Snack", time:"15m Prep / 20m Cook", serv:"4-5 balls", best:"Snack", link:"https://www.youtube.com/results?search_query=mixed+vegetable+balls+recipe", notes:"Grated mix veg + binder, baked or air fried"},
-        {id:39, name:"Salads with Makhana", category:"Salad", time:"5m Prep", serv:"1 bowl", best:"Snack", link:"https://www.youtube.com/results?search_query=makhana+salad+recipes", notes:"Roasted Makhana tossed with salad veggies"},
-        {id:40, name:"Moringa Chapathi", category:"Breakfast", time:"15m Prep / 15m Cook", serv:"2 rotis", best:"Lunch", link:"https://www.youtube.com/results?search_query=moringa+chapati+recipe", notes:"Mix moringa powder/leaves into wheat dough"},
-        {id:41, name:"Spinach Chapathi", category:"Breakfast", time:"15m Prep / 15m Cook", serv:"2 rotis", best:"Lunch", link:"https://www.youtube.com/results?search_query=palak+chapati+recipe", notes:"Mix spinach puree into dough"},
-        {id:42, name:"Moringa Leaves Palya", category:"Side Dish", time:"10m Prep / 15m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=drumstick+leaves+stir+fry", notes:"Stir fry drumstick leaves with coconut"},
-        {id:43, name:"Maggi Thupka", category:"Soup", time:"10m Prep / 10m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=maggi+thukpa+recipe", notes:"Soupy noodles with lots of veggies"},
-        {id:44, name:"Homemade Protein Shake", category:"Protein", time:"5m Prep / 1hr Soak", serv:"1 glass", best:"Post-Workout", link:"", notes:"Soak Pumpkin/Watermelon seeds, Makhana, Flax, Chia, Poppy (1hr). Grind. Add Moringa powder."},
-        {id:45, name:"High Protein Veg Omelette", category:"Breakfast", time:"10m Prep / 10m Cook", serv:"1 omelette", best:"Breakfast", link:"https://www.youtube.com/results?search_query=besan+moong+dal+omelette", notes:"Besan (chickpea flour) or Moong dal batter 'egg'"},
-        {id:46, name:"Spicy Glow Rolls", category:"Snack", time:"20m Prep", serv:"2 rolls", best:"Dinner", link:"https://www.youtube.com/results?search_query=rice+paper+rolls+recipe", notes:"Rice paper rolls with raw veggies (Beet/Carrot) & spicy dip"},
-        {id:47, name:"Achari Chickpea Salad", category:"Salad", time:"10m Prep", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=achari+chana+salad", notes:"Chickpea salad with pickle (achar) spices"},
-        {id:48, name:"Zucchini Maggi (Slurrp Smart)", category:"Snack", time:"10m Prep / 10m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=zucchini+maggi+noodles", notes:"Use Zucchini noodles (Zoodles) instead of pasta"},
-        {id:49, name:"Low Carb Pesto Zoodles", category:"Main", time:"10m Prep / 10m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=pesto+zucchini+noodles", notes:"Zucchini noodles with pesto sauce"},
-        {id:50, name:"Healthy Papdi Chat (Khakra)", category:"Snack", time:"10m Prep", serv:"1 plate", best:"Evening", link:"https://www.youtube.com/results?search_query=khakhra+chaat+recipe", notes:"Use Khakra pieces as Papdi base. Top with veggies/curd."},
-        {id:51, name:"Paan Cheesecake", category:"Dessert", time:"30m Prep / 4hr Set", serv:"1 slice", best:"Dessert", link:"https://www.archanaskitchen.com/recipe/eggless-paan-cheesecake-recipe", notes:"Note: No Milk/Biscuits. @Fit.khurana recipe style (Cashew/Coconut base)."},
-        {id:52, name:"Quinoa Balls with Pepper Dressing", category:"Snack", time:"20m Prep / 20m Cook", serv:"4-5 balls", best:"Snack", link:"https://www.youtube.com/results?search_query=quinoa+balls+recipe", notes:"Cooked quinoa + binder rolled into balls"},
-        {id:53, name:"Baigan Bharta", category:"Side Dish", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=DMZEl86HPok", notes:"Roasted eggplant mash with spices"},
-        {id:54, name:"Carrot Noodles Salad", category:"Salad", time:"10m Prep", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=0Ub959AEsyg", notes:"Spiralized carrots with dressing"},
-        {id:55, name:"Gond Katira Chia Lemon Drink", category:"Coolant", time:"5m Prep / 4hr Soak", serv:"1 glass", best:"Mid-Day", link:"https://www.betheshyft.com/recipes/gond-katera-sherbet/", notes:"Soaked Gond Katira (Tragacanth gum) + Chia + Lemonade"},
-        {id:56, name:"Root Veggie Patties", category:"Snack", time:"20m Prep / 15m Cook", serv:"2 patties", best:"Dinner", link:"https://www.youtube.com/watch?v=BUfujP4uf9Y", notes:"Boil Beetroot, Sweet Potato, Black Channa. Smash with spices, form patties."},
-        {id:57, name:"Hormone Friendly Peri Peri Crackers", category:"Snack", time:"15m Prep / 20m Bake", serv:"Handful", best:"Snack", link:"https://www.youtube.com/results?search_query=seed+crackers+recipe", notes:"Seed crackers (flax/chia) with peri peri seasoning"},
-        {id:58, name:"Tiramisu with Overnight Oats", category:"Breakfast", time:"5m Prep / Overnight", serv:"1 jar", best:"Breakfast", link:"https://www.youtube.com/results?search_query=tiramisu+overnight+oats", notes:"Oats soaked in coffee/yogurt layers"},
-        {id:59, name:"Butternut Squash Soup", category:"Soup", time:"10m Prep / 25m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/watch?v=27C3KVs67N4", notes:"Roasted squash blended into soup"},
-        {id:60, name:"Pumpkin Soup", category:"Soup", time:"10m Prep / 25m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=pumpkin+soup+indian+style", notes:"Creamy pumpkin soup"},
-        {id:61, name:"Chole Masala", category:"Curry", time:"10m Prep / 30m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=chole+masala+recipe", notes:"Classic chickpea curry"},
-        {id:62, name:"Bisibele Bath", category:"Main", time:"15m Prep / 30m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=v2A7o8xz85Q", notes:"Rice + Dal + Veggies spicy mix (Karnataka style)"},
-        {id:63, name:"Lemon Rice", category:"Main", time:"10m Prep / 15m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=lemon+rice+recipe", notes:"Rice with turmeric, lemon, peanuts"},
-        {id:64, name:"Poha", category:"Breakfast", time:"10m Prep / 10m Cook", serv:"1 bowl", best:"Breakfast", link:"https://www.youtube.com/results?search_query=poha+recipe", notes:"Flattened rice stir fry"},
-        {id:65, name:"Puliogare", category:"Main", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=puliyogare+recipe", notes:"Tamarind rice"},
-        {id:66, name:"Ragi Chapathi/Roti", category:"Breakfast", time:"10m Prep / 15m Cook", serv:"2 rotis", best:"Lunch", link:"https://www.youtube.com/results?search_query=ragi+roti+recipe", notes:"Finger millet flatbread"},
-        {id:67, name:"Rice Chapathi/Roti", category:"Breakfast", time:"10m Prep / 15m Cook", serv:"2 rotis", best:"Dinner", link:"https://www.youtube.com/results?search_query=akki+roti+recipe", notes:"Rice flour flatbread (Akki Roti style)"},
-        {id:68, name:"Pongu Kodbele", category:"Snack", time:"15m Prep / 20m Cook", serv:"4-5 pieces", best:"Snack", link:"https://www.youtube.com/watch?v=KqRLJm8ya_Y", notes:"Fried or baked ring snack"},
-        {id:69, name:"Quinoa Khichdi", category:"Main", time:"5m Prep / 20m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=quinoa+khichdi+recipe", notes:"One pot quinoa and lentil mix"},
-        {id:70, name:"Millet Veg Upma", category:"Breakfast", time:"10m Prep / 15m Cook", serv:"1 bowl", best:"Breakfast", link:"https://www.youtube.com/results?search_query=millet+upma+recipe", notes:"Upma made with Foxtail or Little millet"},
-        {id:71, name:"Millet Pongal", category:"Breakfast", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Breakfast", link:"https://www.youtube.com/results?search_query=millet+pongal+recipe", notes:"Ven Pongal made with millets"},
-        {id:72, name:"Billa Kudumulu", category:"Breakfast", time:"15m Prep / 15m Cook", serv:"3-4 pieces", best:"Breakfast", link:"https://www.youtube.com/watch?v=oJIFk0QVycc", notes:"Rice rava steamed cakes/discs"},
-        {id:73, name:"Jeera Roti", category:"Breakfast", time:"10m Prep / 15m Cook", serv:"2 rotis", best:"Lunch", link:"https://www.youtube.com/results?search_query=jeera+roti+recipe", notes:"Roti spiced with cumin seeds"},
-        {id:74, name:"Jeera Gojju", category:"Side Dish", time:"5m Prep / 10m Cook", serv:"1 small cup", best:"Side", link:"https://www.youtube.com/results?search_query=jeera+gojju+recipe", notes:"Spicy cumin curry/dip"},
-        {id:75, name:"Pacchi Pulusu", category:"Side Dish", time:"10m Prep", serv:"1 bowl", best:"Lunch", link:"https://hebbarskitchen.com/pachi-pulusu-recipe-raw-tamarind-rasam/", notes:"Raw tamarind rasam with roasted onions/chilies"},
-        {id:76, name:"Idli/Dosa", category:"Breakfast", time:"10m Prep / 10m Cook", serv:"3 idlis", best:"Breakfast", link:"https://www.youtube.com/results?search_query=idli+dosa+batter+recipe", notes:"Standard fermented rice/dal batter"},
-        {id:77, name:"Alasandala Curry", category:"Curry", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=Gtf2gXay93E", notes:"Black-eyed peas curry"},
-        {id:78, name:"Alasandala Pacchi Pulusu", category:"Side Dish", time:"10m Prep", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=hSUjjsf2C5E", notes:"Black-eyed peas in raw tamarind stew"},
-        {id:79, name:"Lemon Dal Curry", category:"Curry", time:"5m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=lemon+dal+recipe", notes:"Dal flavored with lemon juice (instead of tamarind/tomato)"},
-        {id:80, name:"Tomato Rasam", category:"Side Dish", time:"5m Prep / 15m Cook", serv:"1 cup", best:"Lunch", link:"https://www.youtube.com/results?search_query=tomato+rasam+recipe", notes:"Spicy tomato soup base"},
-        {id:81, name:"Pepper Rasam", category:"Side Dish", time:"5m Prep / 15m Cook", serv:"1 cup", best:"Dinner", link:"https://www.youtube.com/results?search_query=pepper+rasam+recipe", notes:"Spicy pepper soup (good for throat)"},
-        {id:82, name:"Black Channa Curry", category:"Curry", time:"10m Prep / 30m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=t3xGZZkNntU", notes:"Kala Chana gravy"},
-        {id:83, name:"Vegetable Kuut (Kootu)", category:"Curry", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=vegetable+kootu+recipe", notes:"Mixed veg and lentil stew (coconut base)"},
-        {id:84, name:"Beans Palya/Curry", category:"Side Dish", time:"10m Prep / 15m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=pJS-s7BgRp0", notes:"French beans stir fry with coconut"},
-        {id:85, name:"Mangalore Dosakai Sambhar", category:"Curry", time:"10m Prep / 25m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=mangalore+cucumber+sambar", notes:"Yellow cucumber sambar"},
-        {id:86, name:"Munakkaya Pulusu", category:"Curry", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=L4lFqvyQcck", notes:"Drumstick tangy stew"},
-        {id:87, name:"Bhendakaya Pulusu", category:"Curry", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=PMBuj0AJtcA", notes:"Okra tangy stew"},
-        {id:88, name:"Dhondakaya Palya", category:"Side Dish", time:"10m Prep / 15m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=dondakaya+fry+recipe", notes:"Ivy gourd stir fry"},
-        {id:89, name:"Chikkudukayi Palya", category:"Side Dish", time:"10m Prep / 15m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=chikkudukaya+fry+recipe", notes:"Broad beans stir fry"},
-        {id:90, name:"Horse Gram Curry", category:"Curry", time:"10m Prep / 30m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=horsegram+curry+recipe", notes:"Kulthi dal curry"},
-        {id:91, name:"Kadal Curry (Kerala)", category:"Curry", time:"10m Prep / 25m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=kadala+curry+kerala+style", notes:"Black chickpeas in roasted coconut gravy"},
-        {id:92, name:"Karela Fry", category:"Side Dish", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=karela+fry+recipe", notes:"Bitter gourd fry"},
-        {id:93, name:"Pudina Chutney", category:"Condiment", time:"5m Prep", serv:"2 tbsp", best:"Side", link:"https://www.youtube.com/results?search_query=pudina+chutney+recipe", notes:"Mint leaves chutney"},
-        {id:94, name:"Palak Pappu", category:"Dal", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=palak+pappu+recipe", notes:"Spinach Dal"},
-        {id:95, name:"Bassaru with Palya", category:"Main", time:"20m Prep / 30m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/watch?v=WCo1butFNdU", notes:"Greens stock soup (Bassaru) + Greens stir fry (Palya)"},
-        {id:96, name:"Palak Thalimpu", category:"Side Dish", time:"5m Prep / 10m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=palak+talimpu", notes:"Spinach stir fry (tempering)"},
-        {id:97, name:"Gongura Pappu", category:"Dal", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=gongura+pappu+recipe", notes:"Sorrel leaves dal (Tangy)"},
-        {id:98, name:"Mango Gojju", category:"Curry", time:"10m Prep / 15m Cook", serv:"Small cup", best:"Side", link:"https://smithakalluraya.com/ripe-mango-curry-mavina-hannina-gojju-ambe-gojju-recipe/", notes:"Raw mango sweet & spicy curry"},
-        {id:99, name:"Daliya", category:"Breakfast", time:"5m Prep / 15m Cook", serv:"1 bowl", best:"Breakfast", link:"https://www.youtube.com/results?search_query=daliya+recipe", notes:"Broken wheat porridge or upma"},
-        {id:100, name:"Ragi Mudde", category:"Main", time:"5m Prep / 15m Cook", serv:"1 ball", best:"Lunch", link:"https://www.youtube.com/results?search_query=ragi+mudde+recipe", notes:"Finger millet ball"},
-        {id:101, name:"Gutti Vankaya", category:"Curry", time:"15m Prep / 25m Cook", serv:"2-3 pieces", best:"Lunch", link:"https://www.youtube.com/watch?v=y7l7CZBNd54", notes:"Stuffed Brinjal Curry (Andhra special)"},
-        {id:102, name:"Rajma Curry/Salad", category:"Main", time:"10m Prep / 30m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=rajma+masala+recipe", notes:"Red kidney beans gravy or tossed salad"},
-        {id:103, name:"Chipotle Sauce", category:"Condiment", time:"10m Prep", serv:"2 tbsp", best:"Dip", link:"https://www.youtube.com/results?search_query=homemade+chipotle+sauce", notes:"Homemade spicy mayo/dip"},
-        {id:104, name:"Mulberry Homemade Caramel", category:"Dessert", time:"10m Prep / 10m Cook", serv:"1 tbsp", best:"Dessert", link:"https://www.youtube.com/results?search_query=mulberry+sauce+recipe", notes:"Fruit reduction caramel"},
-        {id:105, name:"Blackberry Homemade Caramel", category:"Dessert", time:"10m Prep / 10m Cook", serv:"1 tbsp", best:"Dessert", link:"https://www.youtube.com/watch?v=0lz6ZLTdSzw", notes:"Fruit reduction caramel"},
-        {id:106, name:"Sorakayi Pappu", category:"Dal", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=sorakaya+pappu+recipe", notes:"Bottle gourd dal"},
-        {id:107, name:"Sorakayi Perugu Pachadi", category:"Side Dish", time:"10m Prep", serv:"1 bowl", best:"Lunch", link:"https://www.youtube.com/results?search_query=sorakaya+perugu+pachadi", notes:"Bottle gourd in yogurt (Raita style)"},
-        {id:108, name:"Soya Chilli Maggi", category:"Snack", time:"10m Prep / 10m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=soya+chunks+maggi", notes:"Maggi with soya chunks and chili sauce"},
-        {id:109, name:"Anti-Allergy Elixir", category:"Immunity", time:"5m Prep", serv:"1 glass", best:"Morning", link:"https://www.youtube.com/watch?v=WbpL6CAHhes", notes:"Celery, Lemon, Ginger, Lemon Juice (Mucus control)"},
-        {id:110, name:"Mix Veg Ragi Soup", category:"Soup", time:"10m Prep / 15m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/results?search_query=ragi+vegetable+soup", notes:"Soup thickened with Ragi flour + veggies"},
-        {id:111, name:"Matcha Tea", category:"Drink", time:"5m Prep", serv:"1 cup", best:"Afternoon", link:"https://www.youtube.com/results?search_query=how+to+make+matcha+tea", notes:"Green tea powder whisked in hot water"},
-        {id:112, name:"Broccoli Soup", category:"Soup", time:"10m Prep / 20m Cook", serv:"1 bowl", best:"Dinner", link:"https://www.youtube.com/watch?v=i63Jng0rD8Q", notes:"Pureed broccoli soup"},
-        {id:113, name:"Water Chestnut Manchurian", category:"Snack", time:"15m Prep / 20m Cook", serv:"1 plate", best:"Evening", link:"https://www.youtube.com/watch?v=ufqQouJ_kHc", notes:"Water chestnuts (Singhara) in Manchurian sauce"},
-        {id:114, name:"Green Juice", category:"Drink", time:"10m Prep", serv:"1 glass", best:"Morning", link:"https://www.youtube.com/results?search_query=green+juice+recipe", notes:"Blend of spinach/cucumber/celery/apple"}
-    ];
+    // --- DATABASE ---
+    // A subset of your ~125 items categorized for logic
+    const db = {
+        breakfast: [
+            { name: "Moongdal Dosa (Pesarattu)", tags: ["Protein", "Fiber"], ingredients: "Whole Moong, Ginger, Chili" },
+            { name: "Ragi Paneer Paratha", tags: ["Calcium", "Protein"], ingredients: "Ragi flour, Paneer stuffing" },
+            { name: "Millet Pongal", tags: ["Fiber"], ingredients: "Foxtail millet, Moong dal, Ghee, Pepper" },
+            { name: "Moringa Keerai Dosa", tags: ["Iron", "Calcium"], ingredients: "Rice batter, Moringa leaves" },
+            { name: "High Protein Veg Omelette", tags: ["Protein"], ingredients: "Besan/Moong dal batter, Veggies" },
+            { name: "Set Dosa with Veg Kurma", tags: ["Fermented"], ingredients: "Rice/Urad batter, Mixed veg curry" },
+            { name: "Quinoa Khichdi", tags: ["Protein", "Complete Meal"], ingredients: "Quinoa, Moong dal, Veggies" },
+            { name: "Ragi Mudde", tags: ["Calcium", "Fiber"], ingredients: "Ragi flour, Water (Served with main curry)" },
+            { name: "Daliya Upma", tags: ["Fiber"], ingredients: "Broken wheat, Carrots, Beans" },
+            { name: "Idli with Sambar", tags: ["Gut Health"], ingredients: "Steamed rice cakes, Drumstick sambar" }
+        ],
+        lunch: [
+            { name: "Bisibele Bath", tags: ["Balanced"], ingredients: "Rice, Toor dal, Mixed veggies, Tamarind" },
+            { name: "Chickpea One Pot Rice", tags: ["Protein"], ingredients: "Rice, Chickpeas, Spices" },
+            { name: "Palak Pappu & Rice", tags: ["Iron"], ingredients: "Spinach, Toor dal, Rice" },
+            { name: "Rajma Curry & Jeera Rice", tags: ["Protein", "Fiber"], ingredients: "Kidney beans, Tomato gravy" },
+            { name: "Soya & Chickpea Pulav", tags: ["High Protein"], ingredients: "Soya chunks, Chickpeas, Basmati rice" },
+            { name: "Horsegram Curry & Roti", tags: ["Fat Burn", "Iron"], ingredients: "Horsegram (Kulthi), Spices" },
+            { name: "Gutti Vankaya & Jowar Roti", tags: ["Taste"], ingredients: "Brinjal, Peanut stuffing" },
+            { name: "Sorakayi (Bottle Gourd) Pappu", tags: ["Light", "Hydrating"], ingredients: "Bottle gourd, Lentils" },
+            { name: "Methi Thepla & Curd", tags: ["Diabetes Friendly"], ingredients: "Fenugreek leaves, Wheat flour" },
+            { name: "Lemon Rice & Kosambari", tags: ["Vitamin C"], ingredients: "Rice, Lemon, Peanuts, Moong dal salad" }
+        ],
+        dinner: [
+            // Light meals, Soups, Salads
+            { name: "Moringa Soup & Salad", tags: ["Light", "Iron"], ingredients: "Moringa leaves, Lentils, Cucumber salad" },
+            { name: "Pumpkin Soup & Makhana", tags: ["Vitamin A", "Light"], ingredients: "Red pumpkin, Roasted makhana" },
+            { name: "Sabudana Momos", tags: ["Cravings"], ingredients: "Tapioca pearls, Veggie filling (Steamed)" },
+            { name: "Winter Salad & Eggs/Paneer", tags: ["Raw", "Fiber"], ingredients: "Seasonal veggies, Dressing" },
+            { name: "Green Dal Soup", tags: ["Protein"], ingredients: "Whole moong dal soup" },
+            { name: "Sprouted Moong Tikki Chat", tags: ["Protein"], ingredients: "Sprouts, Onion, Tomato, Chaat masala" },
+            { name: "Butternut Squash Soup", tags: ["Creamy"], ingredients: "Squash, Coconut milk" },
+            { name: "Vegetable Kuut (Stew)", tags: ["Digestive"], ingredients: "Mixed veg, Coconut base" },
+            { name: "Leftover Roti/Rice", tags: ["No Waste"], ingredients: "Repurposed morning curry" }
+        ],
+        drinks: [
+            { name: "Golden Mix (Beetroot)", benefits: "Iron & Blood Flow" },
+            { name: "Golden Mix (Ginger/Turmeric)", benefits: "Immunity" },
+            { name: "Green Juice", benefits: "Folic Acid & Iron" },
+            { name: "Protein Shake (Seeds/Makhana)", benefits: "Zinc & Hair Health" }
+        ]
+    };
 
-    function renderTable(data) {
-        const tbody = document.getElementById("tableBody");
-        tbody.innerHTML = "";
-        data.forEach(item => {
-            const row = `<tr>
-                <td>${item.id}</td>
-                <td><strong>${item.name}</strong></td>
-                <td><span class="category-tag">${item.category}</span></td>
-                <td>${item.time}</td>
-                <td>${item.serv}</td>
-                <td>${item.best}</td>
-                <td>${item.link ? `<a href="${item.link}" target="_blank">Watch Video</a>` : '-'}</td>
-                <td>${item.notes}</td>
-            </tr>`;
-            tbody.innerHTML += row;
-        });
+    // --- LOGIC ---
+
+    function getRandom(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function filterTable() {
-        const query = document.getElementById("search").value.toLowerCase();
-        const filtered = recipes.filter(r => 
-            r.name.toLowerCase().includes(query) || 
-            r.category.toLowerCase().includes(query) ||
-            r.notes.toLowerCase().includes(query)
-        );
-        renderTable(filtered);
+    function generatePlan() {
+        const bfast = getRandom(db.breakfast);
+        const lunch = getRandom(db.lunch);
+        const dinner = getRandom(db.dinner);
+        const drink = getRandom(db.drinks);
+
+        const html = `
+            <div class="meal-card">
+                <div class="meal-header">
+                    <span class="meal-type">7:00 AM • Morning Tonic</span>
+                </div>
+                <div class="dish-name">${drink.name}</div>
+                <div class="ingredients">Benefit: ${drink.benefits}</div>
+                <div class="family-notes">
+                    <div class="note-item">
+                        <span class="note-name">Niveda:</span>
+                        <span class="note-text">Critical for Folic Acid/Iron. Don't skip.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meal-card">
+                <div class="meal-header">
+                    <span class="meal-type">8:30 AM • Breakfast</span>
+                    <div>${renderTags(bfast.tags)}</div>
+                </div>
+                <div class="dish-name">${bfast.name}</div>
+                <div class="ingredients">${bfast.ingredients}</div>
+                <div class="family-notes">
+                    <div class="note-item">
+                        <span class="note-name">Manjunath:</span>
+                        <span class="note-text">${bfast.tags.includes('Protein') ? 'Perfect.' : 'Add 2 Boiled Eggs (Carbs are high).'}</span>
+                    </div>
+                     <div class="note-item">
+                        <span class="note-name">Chethan:</span>
+                        <span class="note-text">Large portion allowed.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meal-card">
+                <div class="meal-header">
+                    <span class="meal-type">1:30 PM • Lunch (Main Cook)</span>
+                    <div>${renderTags(lunch.tags)}</div>
+                </div>
+                <div class="dish-name">${lunch.name}</div>
+                <div class="ingredients">${lunch.ingredients}</div>
+                <div class="family-notes">
+                    <div class="note-item">
+                        <span class="note-name">Niveda:</span>
+                        <span class="note-text">Add Curd or Buttermilk. If planning non-veg, add Fish side here.</span>
+                    </div>
+                    <div class="note-item">
+                        <span class="note-name">Parents:</span>
+                        <span class="note-text">Control Rice portion. Fill half plate with veggies/salad.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meal-card">
+                <div class="meal-header">
+                    <span class="meal-type">4:30 PM • Snack</span>
+                </div>
+                <div class="dish-name">Protein/Seed Shake or Fruit</div>
+                <div class="family-notes">
+                    <div class="note-item">
+                        <span class="note-name">Chethan:</span>
+                        <span class="note-text">Drink the Seed/Makhana Protein Shake.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meal-card dinner">
+                <div class="meal-header">
+                    <span class="meal-type">7:30 PM • Dinner (Light/Assembly)</span>
+                    <div>${renderTags(dinner.tags)}</div>
+                </div>
+                <div class="dish-name">${dinner.name}</div>
+                <div class="ingredients">${dinner.ingredients}</div>
+                <div class="family-notes">
+                    <div class="note-item">
+                        <span class="note-name">Manjunath:</span>
+                        <span class="note-text">Excellent. No heavy grains after 8 PM.</span>
+                    </div>
+                    <div class="note-item">
+                        <span class="note-name">Niveda/Chethan:</span>
+                        <span class="note-text">If hungry, add 2 boiled eggs or leftover lunch curry.</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('app').innerHTML = html;
     }
 
-    function sortTable(n) {
-        // Simple sort implementation for ID and Name
-        if(n===0) recipes.sort((a,b) => a.id - b.id);
-        if(n===1) recipes.sort((a,b) => a.name.localeCompare(b.name));
-        if(n===2) recipes.sort((a,b) => a.category.localeCompare(b.category));
-        renderTable(recipes);
+    function renderTags(tags) {
+        return tags.map(tag => {
+            let className = 'tag';
+            if(tag === 'Protein' || tag === 'High Protein') className += ' protein';
+            if(tag === 'Iron') className += ' iron';
+            if(tag === 'Fiber') className += ' fiber';
+            return `<span class="${className}">${tag}</span>`;
+        }).join('');
     }
 
-    function downloadCSV() {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "ID,Item Name,Category,Prep/Cook Time,Serving,Best Time,Video Link,Notes\n";
-        
-        recipes.forEach(r => {
-            // Escape quotes and handle commas
-            const cleanNotes = `"${r.notes.replace(/"/g, '""')}"`;
-            const row = `${r.id},"${r.name}","${r.category}","${r.time}","${r.serv}","${r.best}","${r.link}",${cleanNotes}`;
-            csvContent += row + "\n";
-        });
+    // Initialize
+    generatePlan();
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "recipe_database.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // Initial Render
-    renderTable(recipes);
 </script>
 
 </body>
